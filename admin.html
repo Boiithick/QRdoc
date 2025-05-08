@@ -2,103 +2,191 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Reveal One Answer</title>
+  <title>Admin Panel</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f9f9f9;
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background-color: #f2f2f2;
       text-align: center;
-      padding: 50px;
     }
 
-    .container {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 30px;
-      max-width: 500px;
-      margin: auto;
+    input, button {
+      padding: 10px;
+      margin: 8px;
+      font-size: 1rem;
+      width: 250px;
+      max-width: 90%;
     }
 
-    .button {
-      display: inline-block;
-      padding: 12px 24px;
-      margin: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
-      transition: background-color 0.3s;
-    }
-
-    .button:hover {
-      background-color: #0056b3;
-    }
-
-    .button:disabled {
-      background-color: grey;
-      cursor: not-allowed;
-    }
-
-    #answer {
-      margin-top: 30px;
-      font-size: 20px;
-      color: #333;
+    #admin-section, #result {
       display: none;
+      margin-top: 30px;
+    }
+
+    #result a {
+      display: inline-block;
+      margin-top: 10px;
+      color: blue;
+      word-break: break-word;
+    }
+
+    .card-entry {
+      background: #fff;
+      margin: 10px auto;
+      padding: 15px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    .card-entry p {
+      margin: 5px 0;
+    }
+
+    .card-entry button {
+      background: #007BFF;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .card-entry button:nth-of-type(2) {
+      background: crimson;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
+  <h1>Admin Login</h1>
 
-  <div class="container">
-    <h2>Select an Answer to Reveal</h2>
-    <button class="button" onclick="reveal(1)" id="btn1">Reveal Answer 1</button>
-    <button class="button" onclick="reveal(2)" id="btn2">Reveal Answer 2</button>
-    <button class="button" onclick="reveal(3)" id="btn3">Reveal Answer 3</button>
+  <div id="login-section">
+    <input type="password" id="passwordInput" placeholder="Enter Password">
+    <br>
+    <button onclick="checkPassword()">Login</button>
+    <p id="error" style="color: red;"></p>
+  </div>
 
-    <div id="answer"></div>
+  <div id="admin-section">
+    <h2>Create Card</h2>
+    <input type="number" id="cardNumber" placeholder="Card Number"><br>
+    <input type="text" id="answer1" placeholder="Answer 1"><br>
+    <input type="text" id="answer2" placeholder="Answer 2"><br>
+    <input type="text" id="answer3" placeholder="Answer 3"><br>
+    <button onclick="saveCard()">Save Card</button>
+    <div id="result"></div>
+
+    <h2>Saved Cards</h2>
+    <div id="card-list"></div>
   </div>
 
   <script>
-    let answers = {};
+    const PASSWORD = "bruh@123";
 
-    function decodeData() {
-      const params = new URLSearchParams(window.location.search);
-      const encoded = params.get("data");
-      if (!encoded) return;
-
-      try {
-        const decodedString = atob(encoded);
-        const decodedParams = new URLSearchParams(decodedString);
-        answers.a1 = decodedParams.get("a1");
-        answers.a2 = decodedParams.get("a2");
-        answers.a3 = decodedParams.get("a3");
-      } catch (e) {
-        console.error("Failed to decode:", e);
+    function checkPassword() {
+      const entered = document.getElementById("passwordInput").value;
+      if (entered === PASSWORD) {
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("admin-section").style.display = "block";
+        renderSavedCards();
+      } else {
+        document.getElementById("error").textContent = "Incorrect password.";
       }
     }
 
-    function reveal(num) {
-      decodeData();
+    function getSavedCards() {
+      return JSON.parse(localStorage.getItem("cards") || "[]");
+    }
 
-      // Disable and hide all buttons
-      document.getElementById("btn1").disabled = true;
-      document.getElementById("btn2").disabled = true;
-      document.getElementById("btn3").disabled = true;
+    function saveCard() {
+      const card = document.getElementById("cardNumber").value.trim();
+      const a1 = document.getElementById("answer1").value.trim();
+      const a2 = document.getElementById("answer2").value.trim();
+      const a3 = document.getElementById("answer3").value.trim();
+      const result = document.getElementById("result");
 
-      document.getElementById("btn1").style.display = "none";
-      document.getElementById("btn2").style.display = "none";
-      document.getElementById("btn3").style.display = "none";
+      if (!card || !a1 || !a2 || !a3) {
+        result.innerHTML = `<p style="color:red;">Please fill in all fields.</p>`;
+        return;
+      }
 
-      // Show selected answer
-      const selected = answers["a" + num];
-      const answerBox = document.getElementById("answer");
-      answerBox.style.display = "block";
-      answerBox.textContent = selected || "No answer found.";
+      const cards = getSavedCards();
+      cards.push({ card, a1, a2, a3 });
+      localStorage.setItem("cards", JSON.stringify(cards));
+
+      result.innerHTML = `<p style="color:green;">Card #${card} saved!</p>`;
+      renderSavedCards();
+
+      // Clear input fields
+      document.getElementById("cardNumber").value = "";
+      document.getElementById("answer1").value = "";
+      document.getElementById("answer2").value = "";
+      document.getElementById("answer3").value = "";
+    }
+
+    function deleteCard(index) {
+      const cards = getSavedCards();
+      cards.splice(index, 1);
+      localStorage.setItem("cards", JSON.stringify(cards));
+      renderSavedCards();
+    }
+
+    function renderSavedCards() {
+      const cards = getSavedCards();
+      const container = document.getElementById("card-list");
+      container.innerHTML = "";
+
+      if (cards.length === 0) {
+        container.innerHTML = "<p>No cards saved yet.</p>";
+        return;
+      }
+
+      cards.forEach((card, index) => {
+        // Update the URL with the correct GitHub Pages link
+        const url = `https://boiithick.github.io/QRdoc/game.html?card=${encodeURIComponent(card.card)}&a1=${encodeURIComponent(card.a1)}&a2=${encodeURIComponent(card.a2)}&a3=${encodeURIComponent(card.a3)}`;
+        const qrId = `qr-${index}`;
+
+        const entry = document.createElement("div");
+        entry.className = "card-entry";
+        entry.innerHTML = `
+          <p><strong>Card #${card.card}</strong></p>
+          <p>1. ${card.a1}</p>
+          <p>2. ${card.a2}</p>
+          <p>3. ${card.a3}</p>
+          <p><a href="${url}" target="_blank">View Card</a></p>
+          <div id="${qrId}" style="margin: 10px 0;"></div>
+          <button onclick="downloadQR('${qrId}', 'Card-${card.card}-QR')">Download QR Code</button>
+          <button onclick="deleteCard(${index})">Delete Card</button>
+        `;
+
+        container.appendChild(entry);
+
+        // Generate QR code
+        new QRCode(document.getElementById(qrId), {
+          text: url,
+          width: 128,
+          height: 128
+        });
+      });
+    }
+
+    function downloadQR(id, filename) {
+      const canvas = document.querySelector(`#${id} canvas`);
+      if (!canvas) {
+        alert("QR not ready yet!");
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `${filename}.png`;
+      link.click();
     }
   </script>
-
 </body>
 </html>
