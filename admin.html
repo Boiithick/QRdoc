@@ -5,79 +5,185 @@
   <title>Admin Panel</title>
   <style>
     body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 50px;
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background-color: #f2f2f2;
+      text-align: center;
     }
+
     input, button {
-      margin: 5px;
-      padding: 8px;
-      font-size: 1em;
+      padding: 10px;
+      margin: 8px;
+      font-size: 1rem;
+      width: 250px;
+      max-width: 90%;
     }
-    #admin-content, #card-form {
+
+    #admin-section, #result {
       display: none;
+      margin-top: 30px;
     }
-    .active {
-      display: block;
+
+    #result a {
+      display: inline-block;
+      margin-top: 10px;
+      color: blue;
+      word-break: break-word;
     }
-    #result {
-      margin-top: 20px;
-      word-break: break-all;
+
+    .card-entry {
+      background: #fff;
+      margin: 10px auto;
+      padding: 15px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    .card-entry p {
+      margin: 5px 0;
+    }
+
+    .card-entry button {
+      background: #007BFF;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .card-entry button:nth-of-type(2) {
+      background: crimson;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div id="login" class="active">
-    <h2>Enter Admin Password</h2>
-    <input type="password" id="password" placeholder="Password">
+  <h1>Admin Login</h1>
+
+  <div id="login-section">
+    <input type="password" id="passwordInput" placeholder="Enter Password">
+    <br>
     <button onclick="checkPassword()">Login</button>
     <p id="error" style="color: red;"></p>
   </div>
 
-  <div id="admin-content">
-    <h1>Admin Panel</h1>
-    <div id="card-form">
-      <input type="number" id="cardNumber" placeholder="Card Number"><br>
-      <input type="text" id="answer1" placeholder="Answer 1"><br>
-      <input type="text" id="answer2" placeholder="Answer 2"><br>
-      <input type="text" id="answer3" placeholder="Answer 3"><br>
-      <button onclick="generateLink()">Generate Link</button>
-    </div>
+  <div id="admin-section">
+    <h2>Create Card</h2>
+    <input type="number" id="cardNumber" placeholder="Card Number"><br>
+    <input type="text" id="answer1" placeholder="Answer 1"><br>
+    <input type="text" id="answer2" placeholder="Answer 2"><br>
+    <input type="text" id="answer3" placeholder="Answer 3"><br>
+    <button onclick="saveCard()">Save Card</button>
     <div id="result"></div>
+
+    <h2>Saved Cards</h2>
+    <div id="card-list"></div>
   </div>
 
   <script>
-    const CORRECT_PASSWORD = 'letmein'; // Change this!
-
+    const PASSWORD = "bruh@123"; 
     function checkPassword() {
-      const input = document.getElementById('password').value;
-      if (input === CORRECT_PASSWORD) {
-        document.getElementById('login').classList.remove('active');
-        document.getElementById('admin-content').classList.add('active');
-        document.getElementById('card-form').classList.add('active');
+      const entered = document.getElementById("passwordInput").value;
+      if (entered === PASSWORD) {
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("admin-section").style.display = "block";
+        renderSavedCards();
       } else {
-        document.getElementById('error').innerText = 'Incorrect password.';
+        document.getElementById("error").textContent = "Incorrect password.";
       }
     }
 
-    function generateLink() {
-      const card = document.getElementById('cardNumber').value;
-      const a1 = encodeURIComponent(document.getElementById('answer1').value);
-      const a2 = encodeURIComponent(document.getElementById('answer2').value);
-      const a3 = encodeURIComponent(document.getElementById('answer3').value);
+    function getSavedCards() {
+      return JSON.parse(localStorage.getItem("cards") || "[]");
+    }
+
+    function saveCard() {
+      const card = document.getElementById("cardNumber").value.trim();
+      const a1 = document.getElementById("answer1").value.trim();
+      const a2 = document.getElementById("answer2").value.trim();
+      const a3 = document.getElementById("answer3").value.trim();
+      const result = document.getElementById("result");
 
       if (!card || !a1 || !a2 || !a3) {
-        document.getElementById('result').innerText = 'Please fill all fields.';
+        result.innerHTML = `<p style="color:red;">Please fill in all fields.</p>`;
         return;
       }
 
-      const url = `game.html?card=${card}&a1=${a1}&a2=${a2}&a3=${a3}`;
-      document.getElementById('result').innerHTML = `
-        <strong>Generated URL:</strong><br>
-        <a href="${url}" target="_blank">${url}</a>
-      `;
+      const cards = getSavedCards();
+      cards.push({ card, a1, a2, a3 });
+      localStorage.setItem("cards", JSON.stringify(cards));
+
+      result.innerHTML = `<p style="color:green;">Card #${card} saved!</p>`;
+      renderSavedCards();
+
+      // Clear input fields
+      document.getElementById("cardNumber").value = "";
+      document.getElementById("answer1").value = "";
+      document.getElementById("answer2").value = "";
+      document.getElementById("answer3").value = "";
+    }
+
+    function deleteCard(index) {
+      const cards = getSavedCards();
+      cards.splice(index, 1);
+      localStorage.setItem("cards", JSON.stringify(cards));
+      renderSavedCards();
+    }
+
+    function renderSavedCards() {
+      const cards = getSavedCards();
+      const container = document.getElementById("card-list");
+      container.innerHTML = "";
+
+      if (cards.length === 0) {
+        container.innerHTML = "<p>No cards saved yet.</p>";
+        return;
+      }
+
+      cards.forEach((card, index) => {
+        const url = `game.html?card=${encodeURIComponent(card.card)}&a1=${encodeURIComponent(card.a1)}&a2=${encodeURIComponent(card.a2)}&a3=${encodeURIComponent(card.a3)}`;
+        const qrId = `qr-${index}`;
+
+        const entry = document.createElement("div");
+        entry.className = "card-entry";
+        entry.innerHTML = `
+          <p><strong>Card #${card.card}</strong></p>
+          <p>1. ${card.a1}</p>
+          <p>2. ${card.a2}</p>
+          <p>3. ${card.a3}</p>
+          <p><a href="${url}" target="_blank">View Card</a></p>
+          <div id="${qrId}" style="margin: 10px 0;"></div>
+          <button onclick="downloadQR('${qrId}', 'Card-${card.card}-QR')">Download QR Code</button>
+          <button onclick="deleteCard(${index})">Delete Card</button>
+        `;
+
+        container.appendChild(entry);
+
+        // Generate QR code
+        new QRCode(document.getElementById(qrId), {
+          text: url,
+          width: 128,
+          height: 128
+        });
+      });
+    }
+
+    function downloadQR(id, filename) {
+      const canvas = document.querySelector(`#${id} canvas`);
+      if (!canvas) {
+        alert("QR not ready yet!");
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `${filename}.png`;
+      link.click();
     }
   </script>
 </body>
