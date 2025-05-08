@@ -2,146 +2,121 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - Create Cards</title>
+  <title>Game</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f2f2f2;
-      padding: 40px;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f2f2f2;
       text-align: center;
     }
-    .container {
+
+    .card-container {
       background: white;
       border-radius: 10px;
-      padding: 30px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      display: inline-block;
-    }
-    input, button {
-      display: block;
-      margin: 10px auto;
-      padding: 10px;
-      width: 80%;
-      max-width: 400px;
-    }
-    #qrcode {
-      margin-top: 20px;
-    }
-    #cardList {
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
       margin-top: 30px;
-      text-align: left;
-      max-width: 600px;
+      padding: 20px;
+      max-width: 500px;
+      width: 90%;
       margin-left: auto;
       margin-right: auto;
     }
-    .card-entry {
-      background: #eaeaea;
+
+    .answer-button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .answer-button:hover {
+      background-color: #0056b3;
+    }
+
+    .answer-container {
+      display: none;
+      margin-top: 20px;
+      font-size: 18px;
       padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
+      border-radius: 6px;
+    }
+
+    .correct-answer {
+      background-color: green;
+      color: white;
+    }
+
+    .incorrect-answer {
+      background-color: crimson;
+      color: white;
+    }
+
+    .answer-button:disabled {
+      background-color: grey;
+      cursor: not-allowed;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="container" id="login-container">
-    <h2>Admin Login</h2>
-    <input type="password" id="admin-password" placeholder="Enter password">
-    <button onclick="checkPassword()">Login</button>
+
+  <div id="card-container" class="card-container">
+    <h2>Card</h2>
+    <div id="cardInfo"></div>
+    <h3>Select an answer to view:</h3>
+    <button id="answer1Button" class="answer-button" onclick="viewAnswer(1)">Answer 1</button>
+    <button id="answer2Button" class="answer-button" onclick="viewAnswer(2)">Answer 2</button>
+    <button id="answer3Button" class="answer-button" onclick="viewAnswer(3)">Answer 3</button>
   </div>
 
-  <div class="container" id="admin-panel" style="display:none;">
-    <h2>Create a New Card</h2>
-    <input type="text" id="question" placeholder="Question">
-    <input type="text" id="a1" placeholder="Answer 1 (Correct)">
-    <input type="text" id="a2" placeholder="Answer 2 (Wrong)">
-    <input type="text" id="a3" placeholder="Answer 3 (Wrong)">
-    <button onclick="createCard()">Generate Link & QR Code</button>
-
-    <div id="linkOutput"></div>
-    <canvas id="qrcode"></canvas>
-
-    <div id="cardList">
-      <h3>Created Cards</h3>
-      <div id="cards"></div>
-    </div>
+  <div id="resultContainer" class="answer-container">
+    <div id="resultMessage"></div>
   </div>
 
   <script>
-    const correctPassword = "admin123"; // Change this to your actual password
-    let cards = JSON.parse(localStorage.getItem("cards")) || [];
+    // Get the query parameters (card number and answers)
+    const urlParams = new URLSearchParams(window.location.search);
+    const cardNumber = urlParams.get("card");
+    const answer1 = urlParams.get("a1");
+    const answer2 = urlParams.get("a2");
+    const answer3 = urlParams.get("a3");
 
-    function checkPassword() {
-      const input = document.getElementById("admin-password").value;
-      if (input === correctPassword) {
-        document.getElementById("login-container").style.display = "none";
-        document.getElementById("admin-panel").style.display = "block";
-        renderCardList();
-      } else {
-        alert("Incorrect password");
+    // Displaying the card number prompt
+    document.getElementById("cardInfo").innerHTML = `
+      <p><strong>Card #${cardNumber}</strong></p>
+      <p>Select an answer below to view it:</p>
+    `;
+
+    // Handle the answer selection
+    function viewAnswer(selectedAnswer) {
+      // Disable all answer buttons
+      document.getElementById("answer1Button").disabled = true;
+      document.getElementById("answer2Button").disabled = true;
+      document.getElementById("answer3Button").disabled = true;
+
+      // Hide the answer buttons after selection
+      document.getElementById("answer1Button").style.display = "none";
+      document.getElementById("answer2Button").style.display = "none";
+      document.getElementById("answer3Button").style.display = "none";
+
+      // Display the selected answer
+      let message;
+      if (selectedAnswer === 1) {
+        message = `<div class="correct-answer">${answer1}</div>`;
+      } else if (selectedAnswer === 2) {
+        message = `<div class="incorrect-answer">${answer2}</div>`;
+      } else if (selectedAnswer === 3) {
+        message = `<div class="incorrect-answer">${answer3}</div>`;
       }
-    }
 
-    // Adjust the URL generation function (ensure it is relative)
-    function generateGameLink(cardData) {
-      const { question, a1, a2, a3 } = cardData;
-      const query = new URLSearchParams({ question, a1, a2, a3 }).toString();
-      
-      // Generate a relative link for game.html
-      return `/game.html?${query}`;  // Relative URL
-    }
-
-    function createCard() {
-      const question = document.getElementById("question").value;
-      const a1 = document.getElementById("a1").value;
-      const a2 = document.getElementById("a2").value;
-      const a3 = document.getElementById("a3").value;
-
-      if (!question || !a1 || !a2 || !a3) {
-        alert("Please fill in all fields.");
-        return;
-      }
-
-      const url = generateGameLink({ question, a1, a2, a3 });
-      const fullUrl = window.location.origin + url;  // Full URL for QR code
-
-      document.getElementById("linkOutput").innerHTML = `
-        <p><strong>Game Link:</strong> <a href="${url}" target="_blank">${fullUrl}</a></p>
-      `;
-
-      // Generate the QR code with the full URL (full URL works on any device)
-      QRCode.toCanvas(document.getElementById('qrcode'), fullUrl, function (error) {
-        if (error) console.error(error);
-        console.log('QR code generated!');
-      });
-
-      // Save the card info to local storage
-      const newCard = { question, a1, a2, a3, url: fullUrl };
-      cards.push(newCard);
-      localStorage.setItem("cards", JSON.stringify(cards));
-      renderCardList();
-    }
-
-    function renderCardList() {
-      const container = document.getElementById("cards");
-      container.innerHTML = "";
-      cards.forEach((card, index) => {
-        const div = document.createElement("div");
-        div.className = "card-entry";
-        div.innerHTML = `
-          <strong>Q${index + 1}:</strong> ${card.question}<br>
-          <a href="${card.url}" target="_blank">${card.url}</a><br>
-          <button onclick="deleteCard(${index})">Delete</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function deleteCard(index) {
-      cards.splice(index, 1);
-      localStorage.setItem("cards", JSON.stringify(cards));
-      renderCardList();
+      // Show the result and disable further action
+      document.getElementById("resultContainer").style.display = "block";
+      document.getElementById("resultMessage").innerHTML = message;
     }
   </script>
+
 </body>
 </html>
