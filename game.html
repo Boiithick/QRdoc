@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Card Answers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fdfdfd;
+      color: #333;
+      padding: 40px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .card-number {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      color: #666;
+    }
+
+    .answer-list {
+      display: inline-block;
+      text-align: left;
+      font-size: 1.1rem;
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .answer-list li {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Card Answers</h1>
+  <div class="card-number" id="card-number">Loading card...</div>
+  <ul class="answer-list" id="answers"></ul>
+
+  <script>
+    function getQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        card: params.get('card'),
+        a1: params.get('a1'),
+        a2: params.get('a2'),
+        a3: params.get('a3'),
+      };
+    }
+
+    function displayAnswers({ card, a1, a2, a3 }) {
+      const cardNum = document.getElementById('card-number');
+      const answersEl = document.getElementById('answers');
+
+      if (!card || !a1 || !a2 || !a3) {
+        cardNum.textContent = "Missing card or answers in URL.";
+        return;
+      }
+
+      cardNum.textContent = `Card #${card}`;
+
+      const answers = [a1, a2, a3];
+      answers.forEach((ans, i) => {
+        const li = document.createElement('li');
+        li.textContent = `Answer ${i + 1}: ${decodeURIComponent(ans)}`;
+        answersEl.appendChild(li);
+      });
+    }
+
+    displayAnswers(getQueryParams());
+  </script>
+</body>
+</html>
