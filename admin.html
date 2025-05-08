@@ -86,7 +86,7 @@
       const { question, a1, a2, a3 } = cardData;
       const query = new URLSearchParams({ question, a1, a2, a3 }).toString();
       
-      // This generates the relative URL directly
+      // This generates the relative URL
       return `/game.html?${query}`;
     }
 
@@ -102,13 +102,13 @@
       }
 
       const url = generateGameLink({ question, a1, a2, a3 });
-      const fullUrl = window.location.origin + url;  // Ensures the full URL includes the domain
+      const fullUrl = window.location.origin + url;  // Use full URL for the QR Code
 
       document.getElementById("linkOutput").innerHTML = `
         <p><strong>Game Link:</strong> <a href="${url}" target="_blank">${fullUrl}</a></p>
       `;
 
-      // Create the QR code using the full URL
+      // Generate the QR code with the full URL (to avoid issues with scanning)
       QRCode.toCanvas(document.getElementById('qrcode'), fullUrl, function (error) {
         if (error) console.error(error);
         console.log('QR code generated!');
