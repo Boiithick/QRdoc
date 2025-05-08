@@ -39,6 +39,7 @@
 
   <div class="container" id="admin-panel" style="display:none;">
     <h2>Create a New Card</h2>
+    <input type="text" id="question" placeholder="Question">
     <input type="text" id="a1" placeholder="Answer 1 (Correct)">
     <input type="text" id="a2" placeholder="Answer 2 (Wrong)">
     <input type="text" id="a3" placeholder="Answer 3 (Wrong)">
@@ -61,31 +62,30 @@
       }
     }
 
-    function generateEncodedGameLink(cardData) {
-      const { a1, a2, a3 } = cardData;
-      const query = new URLSearchParams({ a1, a2, a3 }).toString();
-      const encoded = btoa(query);
-      return `game.html?data=${encoded}`;
+    function generateGameLink(cardData) {
+      const { question, a1, a2, a3 } = cardData;
+      const query = new URLSearchParams({ question, a1, a2, a3 }).toString();
+      return `game.html?${query}`;
     }
 
     function createCard() {
+      const question = document.getElementById("question").value;
       const a1 = document.getElementById("a1").value;
       const a2 = document.getElementById("a2").value;
       const a3 = document.getElementById("a3").value;
 
-      if (!a1 || !a2 || !a3) {
-        alert("Please fill in all three answers.");
+      if (!question || !a1 || !a2 || !a3) {
+        alert("Please fill in all fields.");
         return;
       }
 
-      const url = generateEncodedGameLink({ a1, a2, a3 });
+      const url = generateGameLink({ question, a1, a2, a3 });
       const fullUrl = window.location.origin + "/" + url;
 
       document.getElementById("linkOutput").innerHTML = `
         <p><strong>Game Link:</strong> <a href="${url}" target="_blank">${fullUrl}</a></p>
       `;
 
-      // Generate QR code
       QRCode.toCanvas(document.getElementById('qrcode'), fullUrl, function (error) {
         if (error) console.error(error);
         console.log('QR code generated!');
