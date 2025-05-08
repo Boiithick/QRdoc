@@ -31,7 +31,13 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="login-container">
+    <h2>Admin Login</h2>
+    <input type="password" id="admin-password" placeholder="Enter password">
+    <button onclick="checkPassword()">Login</button>
+  </div>
+
+  <div class="container" id="admin-panel" style="display:none;">
     <h2>Create a New Card</h2>
     <input type="text" id="a1" placeholder="Answer 1 (Correct)">
     <input type="text" id="a2" placeholder="Answer 2 (Wrong)">
@@ -43,6 +49,18 @@
   </div>
 
   <script>
+    const correctPassword = "admin123"; // Change this to your actual password
+
+    function checkPassword() {
+      const input = document.getElementById("admin-password").value;
+      if (input === correctPassword) {
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+      } else {
+        alert("Incorrect password");
+      }
+    }
+
     function generateEncodedGameLink(cardData) {
       const { a1, a2, a3 } = cardData;
       const query = new URLSearchParams({ a1, a2, a3 }).toString();
