@@ -82,12 +82,12 @@
       }
     }
 
-    // Adjust the URL generation function
+    // Adjust the URL generation function (ensure it is relative)
     function generateGameLink(cardData) {
       const { question, a1, a2, a3 } = cardData;
       const query = new URLSearchParams({ question, a1, a2, a3 }).toString();
       
-      // Assuming the game.html is at the root of the GitHub Pages site.
+      // Generate a relative link for game.html
       return `/game.html?${query}`;  // Relative URL
     }
 
