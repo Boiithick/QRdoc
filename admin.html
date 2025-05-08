@@ -86,10 +86,8 @@
       const { question, a1, a2, a3 } = cardData;
       const query = new URLSearchParams({ question, a1, a2, a3 }).toString();
       
-      // Modify this if you have a subfolder or if you're on a server other than the root
-      const path = "/path/to/game";  // Change this to the correct relative path where game.html is located
-
-      return `${path}/game.html?${query}`;
+      // This generates the relative URL directly
+      return `/game.html?${query}`;
     }
 
     function createCard() {
@@ -104,17 +102,19 @@
       }
 
       const url = generateGameLink({ question, a1, a2, a3 });
-      const fullUrl = window.location.origin + url;
+      const fullUrl = window.location.origin + url;  // Ensures the full URL includes the domain
 
       document.getElementById("linkOutput").innerHTML = `
         <p><strong>Game Link:</strong> <a href="${url}" target="_blank">${fullUrl}</a></p>
       `;
 
+      // Create the QR code using the full URL
       QRCode.toCanvas(document.getElementById('qrcode'), fullUrl, function (error) {
         if (error) console.error(error);
         console.log('QR code generated!');
       });
 
+      // Save the card info to local storage
       const newCard = { question, a1, a2, a3, url: fullUrl };
       cards.push(newCard);
       localStorage.setItem("cards", JSON.stringify(cards));
