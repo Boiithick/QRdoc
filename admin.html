@@ -87,6 +87,7 @@
 
   <script>
     const PASSWORD = "bruh@123"; 
+
     function checkPassword() {
       const entered = document.getElementById("passwordInput").value;
       if (entered === PASSWORD) {
@@ -146,7 +147,8 @@
       }
 
       cards.forEach((card, index) => {
-        const url = `game.html?card=${encodeURIComponent(card.card)}&a1=${encodeURIComponent(card.a1)}&a2=${encodeURIComponent(card.a2)}&a3=${encodeURIComponent(card.a3)}`;
+        // Update the URL with the correct GitHub Pages link
+        const url = `https://boiithick.github.io/QRdoc/game.html?card=${encodeURIComponent(card.card)}&a1=${encodeURIComponent(card.a1)}&a2=${encodeURIComponent(card.a2)}&a3=${encodeURIComponent(card.a3)}`;
         const qrId = `qr-${index}`;
 
         const entry = document.createElement("div");
