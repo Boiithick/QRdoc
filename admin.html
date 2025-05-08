@@ -69,13 +69,14 @@
 
   <script>
     const correctPassword = "admin123"; // Change this to your actual password
-    const cards = [];
+    let cards = JSON.parse(localStorage.getItem("cards")) || [];
 
     function checkPassword() {
       const input = document.getElementById("admin-password").value;
       if (input === correctPassword) {
         document.getElementById("login-container").style.display = "none";
         document.getElementById("admin-panel").style.display = "block";
+        renderCardList();
       } else {
         alert("Incorrect password");
       }
@@ -110,8 +111,9 @@
         console.log('QR code generated!');
       });
 
-      // Save to card list and display
-      cards.push({ question, url: fullUrl });
+      const newCard = { question, a1, a2, a3, url: fullUrl };
+      cards.push(newCard);
+      localStorage.setItem("cards", JSON.stringify(cards));
       renderCardList();
     }
 
@@ -123,10 +125,17 @@
         div.className = "card-entry";
         div.innerHTML = `
           <strong>Q${index + 1}:</strong> ${card.question}<br>
-          <a href="${card.url}" target="_blank">${card.url}</a>
+          <a href="${card.url}" target="_blank">${card.url}</a><br>
+          <button onclick="deleteCard(${index})">Delete</button>
         `;
         container.appendChild(div);
       });
+    }
+
+    function deleteCard(index) {
+      cards.splice(index, 1);
+      localStorage.setItem("cards", JSON.stringify(cards));
+      renderCardList();
     }
   </script>
 </body>
