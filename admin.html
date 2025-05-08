@@ -27,6 +27,19 @@
     #qrcode {
       margin-top: 20px;
     }
+    #cardList {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .card-entry {
+      background: #eaeaea;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
@@ -47,10 +60,16 @@
 
     <div id="linkOutput"></div>
     <canvas id="qrcode"></canvas>
+
+    <div id="cardList">
+      <h3>Created Cards</h3>
+      <div id="cards"></div>
+    </div>
   </div>
 
   <script>
     const correctPassword = "admin123"; // Change this to your actual password
+    const cards = [];
 
     function checkPassword() {
       const input = document.getElementById("admin-password").value;
@@ -89,6 +108,24 @@
       QRCode.toCanvas(document.getElementById('qrcode'), fullUrl, function (error) {
         if (error) console.error(error);
         console.log('QR code generated!');
+      });
+
+      // Save to card list and display
+      cards.push({ question, url: fullUrl });
+      renderCardList();
+    }
+
+    function renderCardList() {
+      const container = document.getElementById("cards");
+      container.innerHTML = "";
+      cards.forEach((card, index) => {
+        const div = document.createElement("div");
+        div.className = "card-entry";
+        div.innerHTML = `
+          <strong>Q${index + 1}:</strong> ${card.question}<br>
+          <a href="${card.url}" target="_blank">${card.url}</a>
+        `;
+        container.appendChild(div);
       });
     }
   </script>
