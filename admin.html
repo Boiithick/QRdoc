@@ -85,7 +85,11 @@
     function generateGameLink(cardData) {
       const { question, a1, a2, a3 } = cardData;
       const query = new URLSearchParams({ question, a1, a2, a3 }).toString();
-      return `game.html?${query}`;
+      
+      // Modify this if you have a subfolder or if you're on a server other than the root
+      const path = "/path/to/game";  // Change this to the correct relative path where game.html is located
+
+      return `${path}/game.html?${query}`;
     }
 
     function createCard() {
@@ -100,7 +104,7 @@
       }
 
       const url = generateGameLink({ question, a1, a2, a3 });
-      const fullUrl = window.location.origin + "/" + url;
+      const fullUrl = window.location.origin + url;
 
       document.getElementById("linkOutput").innerHTML = `
         <p><strong>Game Link:</strong> <a href="${url}" target="_blank">${fullUrl}</a></p>
